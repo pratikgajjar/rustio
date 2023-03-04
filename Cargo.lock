@@ -747,6 +747,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "rustio"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "chrono",
+ "dotenv",
+ "hyper",
+ "hyper-tls",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "tokio",
+ "tower",
+ "tower-http",
+]
+
+[[package]]
 name = "rustix"
 version = "0.36.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -900,23 +917,6 @@ checksum = "64a4a911eed85daf18834cfaa86a79b7d266ff93ff5ba14005426219480ed662"
 dependencies = [
  "libc",
  "winapi",
-]
-
-[[package]]
-name = "stackq"
-version = "0.1.0"
-dependencies = [
- "axum",
- "chrono",
- "dotenv",
- "hyper",
- "hyper-tls",
- "serde",
- "serde_derive",
- "serde_json",
- "tokio",
- "tower",
- "tower-http",
 ]
 
 [[package]]
