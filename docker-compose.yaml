@@ -1,0 +1,9 @@
+version: "3"
+
+services:
+  app:
+    build: .
+    environment:
+      EXTERNAL_URL: http://172.31.50.91/
+    ports:
+      - "8000:8000"
