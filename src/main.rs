@@ -41,6 +41,11 @@ pub async fn io_call( State(state): State<AppState>) -> Json<IOCall> {
     Json(serde_json::from_reader(body.reader()).unwrap())
 }
 
+// basic handler that responds with a static string
+async fn root() -> &'static str {
+    "Hello, World!"
+}
+
 pub fn builder() -> hyper::server::Builder<AddrIncoming> {
     let addr = SocketAddr::from((Ipv4Addr::UNSPECIFIED, 8000));
     let listener = reuse_listener(addr).expect("couldn't bind to addr");
@@ -77,9 +82,11 @@ fn reuse_listener(addr: SocketAddr) -> io::Result<TcpListener> {
 
 #[tokio::main]
 async fn main() {
+       // EXTERNAL_URL = http://172.30.120.12/
        let app_state = AppState{ external_url: env::var("EXTERNAL_URL").expect("Set EXTERNAL_URL env variable") };
        let app = Router::new()
         .route("/io", get(io_call))
+        .route("/static", get(root))
         .with_state(app_state.clone());
 
       builder()
