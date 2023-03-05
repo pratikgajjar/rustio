@@ -15,6 +15,7 @@ use std::env;
 use tokio::net::{TcpListener, TcpSocket};
 
 pub const POOL_SIZE: u32 = 10000;
+pub const PORT: u16 = 8001;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -42,12 +43,13 @@ async fn root() -> &'static str {
 }
 
 pub fn builder() -> hyper::server::Builder<AddrIncoming> {
-    let addr = SocketAddr::from((Ipv4Addr::UNSPECIFIED, 8000));
+    let addr = SocketAddr::from((Ipv4Addr::UNSPECIFIED, PORT));
     let listener = reuse_listener(addr).expect("couldn't bind to addr");
     let incoming = AddrIncoming::from_listener(listener).unwrap();
 
     println!(
-        "Started axum server at 8000 with pool size {pool_size}",
+        "Started axum server at {port} with pool size {pool_size}",
+        port = PORT,
         pool_size = POOL_SIZE
     );
 
