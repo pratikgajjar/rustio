@@ -1,29 +1,25 @@
 extern crate serde_json;
-use axum::{
-    extract::State,
-    routing::get,
-    Router,
-};
 use axum::response::Json;
+use axum::{extract::State, routing::get, Router};
+use hyper::body::Buf;
+use hyper::client::HttpConnector;
+use hyper::{Body, Client};
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
-use hyper::Client;
-use hyper::body::Buf;
 
 use std::io;
 use std::net::{Ipv4Addr, SocketAddr};
 
 use hyper::server::conn::AddrIncoming;
-use tokio::net::{TcpListener, TcpSocket};
 use std::env;
-
+use tokio::net::{TcpListener, TcpSocket};
 
 pub const POOL_SIZE: u32 = 10000;
-
 
 #[derive(Clone)]
 pub struct AppState {
     external_url: String,
+    client: hyper::Client<HttpConnector, Body>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -32,10 +28,9 @@ pub struct IOCall {
     pub msg: Option<String>,
 }
 
-pub async fn io_call( State(state): State<AppState>) -> Json<IOCall> {
+pub async fn io_call(State(state): State<AppState>) -> Json<IOCall> {
     let external_url = state.external_url.parse().unwrap();
-    let client = Client::new();
-    let resp = client.get(external_url).await.unwrap();
+    let resp = state.client.get(external_url).await.unwrap();
     let body = hyper::body::aggregate(resp).await.unwrap();
 
     Json(serde_json::from_reader(body.reader()).unwrap())
@@ -79,17 +74,19 @@ fn reuse_listener(addr: SocketAddr) -> io::Result<TcpListener> {
     socket.listen(1024)
 }
 
-
 #[tokio::main]
 async fn main() {
-       // EXTERNAL_URL = http://172.30.120.12/
-       let app_state = AppState{ external_url: env::var("EXTERNAL_URL").expect("Set EXTERNAL_URL env variable") };
-       let app = Router::new()
+    // EXTERNAL_URL = http://172.30.120.12/
+    let app_state = AppState {
+        external_url: env::var("EXTERNAL_URL").expect("Set EXTERNAL_URL env variable"),
+        client: Client::new(),
+    };
+    let app = Router::new()
         .route("/io", get(io_call))
         .route("/static", get(root))
         .with_state(app_state.clone());
 
-      builder()
+    builder()
         .http1_pipeline_flush(true)
         .serve(app.into_make_service())
         .await
