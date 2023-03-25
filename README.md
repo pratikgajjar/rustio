@@ -1,24 +1,29 @@
 # rustio
 
-Make IO Call to external url and serialise and return response 
+## Optimizing network calls in Rust using Axum, Hyper, and Tokio libraries: an RCA
 
-Nginx request -  throughput ~**30000** requests/second. 
-```
-curl -v 172.31.50.91/
-{"status": 200, "msg": "Good Luck!"}
-```
+#### Scenario  
 Nginx and Rust server are running on separate ec2 instance c6a.large in same network.
 
-In rust server I have 2 APIs
+In rust server we have 2 APIs
  
 1. Returns static response => Throughput **47000** requests/second
 2. Make HTTP request to Nginx server -> Parse Json -> Return parsed data. => Throughput **2462** requests/second. [Issue]
 
-Similar benchmark done in GoLang which uses [Fiber](https://github.com/gofiber/fiber) as http server in prefork model, [json-iterator](https://github.com/json-iterator/go). It's able to make call to nginx and return response at rate ~**20000** requests/second. Which means there are no issues with infra/docker/client used to test rust server.
+For the similar benchmark in GoLang we got ~**20000** requests/second, which means there are no issues with infra/docker/client used to test rust server.
 
-There must be something missing in my rust code which causes such regression when http call introduced. 
+GoLang App Specs: 
 
-Need help with understanding why this would happen and how to improve rust code. 
+http server - [Fiber](https://github.com/gofiber/fiber) with prefork enabled
+JSON lib - [json-iterator](https://github.com/json-iterator/go)
+
+Nginx request throughput ~**30000** requests/second. 
+```
+curl -v 172.31.50.91/
+{"status": 200, "msg": "Good Luck!"}
+```
+
+The goal is to identify the cause of the performance regression in the Rust code and find ways to improve it. Some possible factors that could be causing the performance issue are:
 
 Benchmark result
 ```
@@ -48,8 +53,6 @@ Response time histogram:
   0.069 [11]    |
 ```
 
-
-
 My attempts to improve perf.  
 - Both golang and rust are running on docker container on same instance one at a time. 
 - System ulimit / somaxcon has been updated to not cause any bottleneck, since static response able to perform 47K rps, it shouldn't cause limitation 
@@ -77,6 +80,7 @@ pub async fn io_call( State(state): State<AppState>) -> Json<IOCall> {
 }
 ```
 
+### Solution 
 
 Thanks to [@kmdreko](https://stackoverflow.com/users/2189130/kmdreko)
 
