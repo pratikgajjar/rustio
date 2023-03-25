@@ -1,6 +1,6 @@
 # rustio
 
-## Optimizing network calls in Rust using Axum, Hyper, and Tokio libraries: an RCA
+## Unleashing Rust's Network Performance: Achieving an 11x Increase in throughput with Axum, Hyper, and Tokio
 
 #### Scenario  
 Nginx and Rust server are running on separate ec2 instance c6a.large in same network.
